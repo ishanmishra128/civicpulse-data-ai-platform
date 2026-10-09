@@ -1,4 +1,3 @@
-import os
 import sys
 from datetime import datetime, timedelta
 
@@ -17,9 +16,7 @@ def extract_incremental():
 
 
 def load_incremental():
-    os.environ["CIVICPULSE_DATA_FILE"] = str(
-        incremental_extract.OUTPUT_FILE
-    )
+    load_to_postgres.DATA_FILE = incremental_extract.OUTPUT_FILE
     load_to_postgres.main()
 
 
