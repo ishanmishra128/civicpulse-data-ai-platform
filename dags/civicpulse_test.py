@@ -6,12 +6,11 @@ from airflow.providers.standard.operators.python import PythonOperator
 
 def verify_environment():
     print("CivicPulse Airflow test passed.")
-    print(f"Execution environment time: {datetime.now().isoformat()}")
+    print(f"Execution time: {datetime.now().isoformat()}")
 
 
 with DAG(
     dag_id="civicpulse_test",
-    description="Verify the CivicPulse Airflow environment",
     start_date=datetime(2026, 1, 1),
     schedule=None,
     catchup=False,
