@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: stg_nyc_311_requests
+    description: "Standardized 311 requests, retaining source records and flagging invalid closure timestamps."
+    columns:
+      - name: unique_key
+        description: "Unique NYC 311 service-request identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: created_date
+        data_tests:
+          - not_null
+
+  - name: fct_311_closure_performance
+    description: "Requests with valid closure timestamps and nonnegative closure durations."
+    columns:
+      - name: unique_key
+        data_tests:
+          - not_null
+          - unique
+
+      - name: closure_hours
+        data_tests:
+          - not_null
+
+  - name: agg_311_by_borough
+    description: "Request volume and valid closure-time statistics grouped by borough."
+    columns:
+      - name: borough
+        data_tests:
+          - not_null
+          - unique
+
+      - name: total_requests
+        data_tests:
+          - not_null
