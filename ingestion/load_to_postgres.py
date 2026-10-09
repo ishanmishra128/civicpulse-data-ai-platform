@@ -8,7 +8,14 @@ from psycopg.types.json import Jsonb
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_FILE = PROJECT_ROOT / "data" / "raw" / "nyc_311_requests.jsonl"
+DATA_FILE = Path(
+    os.getenv(
+        "CIVICPULSE_DATA_FILE",
+        str(PROJECT_ROOT / "data" / "raw" / "nyc_311_requests.jsonl"),
+    )
+)
+if not DATA_FILE.is_absolute():
+    DATA_FILE = PROJECT_ROOT / DATA_FILE
 
 DB_CONFIG = {
     "host": os.getenv("PGHOST", "localhost"),
