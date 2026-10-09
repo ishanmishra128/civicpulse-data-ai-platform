@@ -1,0 +1,56 @@
+services:
+  airflow-metadata-db:
+    image: postgres:16
+    container_name: civicpulse-airflow-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow_local_dev
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow_metadata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow -d airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  airflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    image: civicpulse-airflow:3.3.1
+    container_name: civicpulse-airflow
+    command: standalone
+    restart: unless-stopped
+    depends_on:
+      airflow-metadata-db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      AIRFLOW_HOME: /opt/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow_local_dev@airflow-metadata-db/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      PGHOST: host.docker.internal
+      PGPORT: "5050"
+      PGDATABASE: civicpulse
+      PGUSER: civicpulse
+      PGPASSWORD: civicpulse_local_dev
+    volumes:
+      - airflow_home:/opt/airflow
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./config:/opt/airflow/config
+      - ./ingestion:/opt/civicpulse/ingestion:ro
+      - ./civicpulse_dbt:/opt/civicpulse/civicpulse_dbt:ro
+      - ./sql:/opt/civicpulse/sql:ro
+    working_dir: /opt/civicpulse
+    user: "50000:0"
+
+volumes:
+  airflow_home:
+  airflow_metadata:
