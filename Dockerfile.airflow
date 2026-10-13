@@ -1,12 +1,19 @@
 FROM apache/airflow:3.3.1
 
 ARG AIRFLOW_VERSION=3.3.1
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.13
 
 USER airflow
 
+# Install Airflow dependencies using matching Python constraints.
 RUN pip install --no-cache-dir \
     "apache-airflow==${AIRFLOW_VERSION}" \
     --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt" \
     requests \
     "psycopg[binary]"
+
+# Keep dbt dependencies isolated from Airflow's Python environment.
+RUN python -m venv /home/airflow/dbt-venv \
+    && /home/airflow/dbt-venv/bin/pip install --no-cache-dir \
+        "dbt-core==1.12.5" \
+        "dbt-postgres==1.11.0"
