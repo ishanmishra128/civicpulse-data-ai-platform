@@ -34,6 +34,7 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow_local_dev@airflow-metadata-db:5432/airflow
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      DBT_PROFILES_DIR: /opt/airflow/config/dbt
       PGHOST: host.docker.internal
       PGPORT: "5050"
       PGDATABASE: civicpulse
