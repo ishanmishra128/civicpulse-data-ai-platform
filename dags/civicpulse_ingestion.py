@@ -41,6 +41,8 @@ def run_dbt(command):
             DBT_PROFILES_DIR,
             "--log-path",
             "/tmp/dbt-logs",
+            "--target-path",
+            "/tmp/dbt-target",
         ],
         cwd=DBT_DIR,
         env=env,
