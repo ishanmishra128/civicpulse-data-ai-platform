@@ -38,7 +38,7 @@ INSERT INTO raw.nyc_311_requests (
 VALUES (%s, %s, %s, %s, %s, %s, %s)
 ON CONFLICT (unique_key) DO UPDATE SET
     created_date = EXCLUDED.created_date,
-    closed_date = EXCLUDED.closed_date,
+    closed_date = COALESCE(EXCLUDED.closed_date, raw.nyc_311_requests.closed_date),
     complaint_type = EXCLUDED.complaint_type,
     agency = EXCLUDED.agency,
     borough = EXCLUDED.borough,
