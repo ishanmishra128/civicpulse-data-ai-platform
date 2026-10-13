@@ -43,7 +43,10 @@ def main():
     with OUTPUT_FILE.open("w", encoding="utf-8") as output:
         while True:
             params = {
-                "$where": f"created_date >= '{cutoff_string}'",
+                "$where": (
+                    f"created_date >= '{cutoff_string}' "
+                    f"OR closed_date >= '{cutoff_string}'"
+                ),
                 "$order": "created_date ASC, unique_key ASC",
                 "$limit": PAGE_SIZE,
                 "$offset": offset,
