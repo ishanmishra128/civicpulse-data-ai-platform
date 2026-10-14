@@ -19,7 +19,9 @@ import load_to_postgres
 
 
 def extract_incremental():
-    incremental_extract.main()
+    metrics = incremental_extract.main()
+    print(f"Extraction metrics: {metrics}")
+    return metrics
 
 
 def load_incremental():
