@@ -110,3 +110,40 @@ def test_extractor_rejects_record_missing_required_fields(monkeypatch, tmp_path)
 
     with pytest.raises(ValueError, match="missing required fields"):
         incremental_extract.main()
+
+
+def test_extractor_handles_empty_api_response(monkeypatch, tmp_path):
+    fake_session = FakeSession([[]])
+    output_file = tmp_path / "incremental.jsonl"
+
+    monkeypatch.setattr(incremental_extract, "create_session", lambda: fake_session)
+    monkeypatch.setattr(incremental_extract, "OUTPUT_FILE", output_file)
+
+    incremental_extract.main()
+
+    assert output_file.exists()
+    assert output_file.read_text(encoding="utf-8") == ""
+    assert len(fake_session.calls) == 1
+
+
+def test_extractor_propagates_api_http_error(monkeypatch, tmp_path):
+    class FailingResponse:
+        def raise_for_status(self):
+            raise incremental_extract.requests.HTTPError("API unavailable")
+
+        def json(self):
+            raise AssertionError("JSON should not be parsed after an HTTP error")
+
+    class FailingSession:
+        def get(self, url, params, timeout):
+            return FailingResponse()
+
+    monkeypatch.setattr(
+        incremental_extract, "create_session", lambda: FailingSession()
+    )
+    monkeypatch.setattr(
+        incremental_extract, "OUTPUT_FILE", tmp_path / "incremental.jsonl"
+    )
+
+    with pytest.raises(incremental_extract.requests.HTTPError, match="API unavailable"):
+        incremental_extract.main()
