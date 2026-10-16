@@ -1,4 +1,6 @@
 import json
+import logging
+import os
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -11,6 +13,12 @@ API_URL = "https://data.cityofnewyork.us/resource/erm2-nwe9.json"
 PAGE_SIZE = 5000
 LOOKBACK_DAYS = 3
 OUTPUT_FILE = Path("/tmp/civicpulse_311_incremental.jsonl")
+
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s %(levelname)s %(name)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
 def create_session():
@@ -32,6 +40,18 @@ def create_session():
 
 
 def main():
+    started = time.perf_counter()
+    total = 0
+    logger.info("Starting incremental NYC 311 extraction")
+
+    try:
+        return _extract_records(started)
+    except Exception:
+        logger.exception("Incremental extraction failed")
+        raise
+
+
+def _extract_records(started):
     cutoff = datetime.now(timezone.utc) - timedelta(days=LOOKBACK_DAYS)
     cutoff_string = cutoff.strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -43,7 +63,10 @@ def main():
     with OUTPUT_FILE.open("w", encoding="utf-8") as output:
         while True:
             params = {
-                "$where": f"created_date >= '{cutoff_string}'",
+                "$where": (
+                    f"created_date >= '{cutoff_string}' "
+                    f"OR closed_date >= '{cutoff_string}'"
+                ),
                 "$order": "created_date ASC, unique_key ASC",
                 "$limit": PAGE_SIZE,
                 "$offset": offset,
@@ -73,8 +96,19 @@ def main():
 
             time.sleep(0.2)
 
-    print(f"Incremental extraction complete: {total:,} records")
-    print(f"Output: {OUTPUT_FILE}")
+    elapsed = time.perf_counter() - started
+    metrics = {
+        "records_extracted": total,
+        "duration_seconds": round(elapsed, 2),
+        "status": "success",
+    }
+    logger.info(
+        "Extraction completed: records_extracted=%s duration_seconds=%.2f output=%s",
+        total,
+        elapsed,
+        OUTPUT_FILE,
+    )
+    return metrics
 
 
 if __name__ == "__main__":

@@ -19,12 +19,16 @@ import load_to_postgres
 
 
 def extract_incremental():
-    incremental_extract.main()
+    metrics = incremental_extract.main()
+    print(f"Extraction metrics: {metrics}")
+    return metrics
 
 
 def load_incremental():
     load_to_postgres.DATA_FILE = incremental_extract.OUTPUT_FILE
-    load_to_postgres.main()
+    metrics = load_to_postgres.main()
+    print(f"Load metrics: {metrics}")
+    return metrics
 
 
 def run_dbt(command):
