@@ -28,6 +28,20 @@ def test_parse_timestamp_rejects_invalid_value():
         load_to_postgres.parse_timestamp("not-a-timestamp")
 
 
+def test_create_session_retries_transient_http_errors():
+    session = incremental_extract.create_session()
+
+    adapter = session.get_adapter("https://")
+    retry = adapter.max_retries
+
+    assert retry.total == 5
+    assert retry.connect == 5
+    assert retry.read == 5
+    assert retry.backoff_factor == 1
+    assert 429 in retry.status_forcelist
+    assert 503 in retry.status_forcelist
+    assert "GET" in retry.allowed_methods
+
 # API extraction tests
 
 class FakeResponse:
