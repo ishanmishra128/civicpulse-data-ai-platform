@@ -12,3 +12,4 @@ FROM {{ ref('stg_nyc_311_requests') }}
 
 WHERE closed_date IS NOT NULL
   AND closed_date >= created_date
+  AND closed_date <= CURRENT_TIMESTAMP

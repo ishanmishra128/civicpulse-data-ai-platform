@@ -10,8 +10,8 @@ SELECT
 
     (
         closed_date IS NOT NULL
-        AND closed_date < created_date
-    ) AS has_invalid_closure_timestamp,
+        AND closed_date > CURRENT_TIMESTAMP
+    ) AS has_future_closure_timestamp,
 
     CASE
         WHEN closed_date IS NOT NULL
